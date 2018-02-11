@@ -4,11 +4,50 @@ public class Main{
 	final static int INPUT_NODES = 2;
 	final static int OUTPUT_NODES = 1;
 	public static void main(String[]args){
+		//genome generation
 		Genome[] genomePool = new Genome[GENOME_POOL_NUMBER];
 		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
 			genomePool[x] = new Genome(INPUT_NODES,OUTPUT_NODES,1);
 		}
-		/*
+		
+		
+		double[][] inputs = {
+			{0.0,0.0},
+			{0.0,1.0},
+			{1.0,0.0},
+			{1.0,1.0}
+		};
+		double[] outputs = {
+			0.0,
+			1.0,
+			1.0,
+			0.0
+		};
+		
+		//fitness evaluation
+		double[] fitnessRating = new double[GENOME_POOL_NUMBER];
+		//measured by error for XOR problem
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			double sum = 4.0;
+			for(int y = 0; y < inputs.length; y++){
+				genomePool[x].setNodeValues(inputs[y]);
+				double[] o = genomePool[x].getNodeValues(OUTPUT_NODES);
+				//for(int z = 0; z < OUTPUT_NODES; z++){   infrastructure for 2d output array
+					sum -= Math.abs(o[0] - outputs[y]); // sum += o[z] - outputs[y][z] 
+				//}
+			}
+			fitnessRating[x] = sum;
+		}
+		
+		//speciation
+		
+		
+		testing();
+		
+		
+	}
+	public static void testing(){
+		//Early Genome Generation Testing
 		int x = 99;
 		System.out.println("I am Genome number " + x);
 		System.out.println("I have " + genomePool[x].i_nodes + " input nodes, " + genomePool[x].h_nodes 
@@ -19,11 +58,29 @@ public class Main{
 			System.out.println("This connects node " + g.inID + " to " + g.outID + " with weight " + g.weight);
 		}
 		
-		Early Genome Generation Testing
-		*/
-		double[] fitnessRating = new double[GENOME_POOL_NUMBER];
-		//measured by error for XOR problem
+		//First Genome evaluation Testing
+		System.out.println("");
+		
+		System.out.println("I have a " + fitnessRating[x] + " fitness rating.");
+		
 		
 		
 	}
 }
+
+
+/*
+
+ - Create a genome pool with n random genomes
+ - Take each genome and apply to problem / simulation and calculate the genome fitness
+	~ input values using setNodeValues 
+	~ receive values using getNodeValues, compare for fitness
+	
+ - Assign each genome to a species
+ - In each species cull the genomes removing some of the weaker genomes
+ - Breed each species (randomly select genomes in the species to either crossover or mutate)
+ - Repeat all of the above
+
+
+
+*/
