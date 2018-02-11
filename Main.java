@@ -3,29 +3,33 @@ public class Main{
 	final static int GENOME_POOL_NUMBER = 100;
 	final static int INPUT_NODES = 2;
 	final static int OUTPUT_NODES = 1;
+	
+	static Genome[] genomePool;
+	static double[] fitnessRating;
+	
+	static double[][] inputs = {
+		{0.0,0.0},
+		{0.0,1.0},
+		{1.0,0.0},
+		{1.0,1.0}
+	};
+	static double[] outputs = {
+		0.0,
+		1.0,
+		1.0,
+		0.0
+	};
+	
 	public static void main(String[]args){
 		//genome generation
-		Genome[] genomePool = new Genome[GENOME_POOL_NUMBER];
+		genomePool = new Genome[GENOME_POOL_NUMBER];
 		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
 			genomePool[x] = new Genome(INPUT_NODES,OUTPUT_NODES,1);
 		}
 		
 		
-		double[][] inputs = {
-			{0.0,0.0},
-			{0.0,1.0},
-			{1.0,0.0},
-			{1.0,1.0}
-		};
-		double[] outputs = {
-			0.0,
-			1.0,
-			1.0,
-			0.0
-		};
-		
 		//fitness evaluation
-		double[] fitnessRating = new double[GENOME_POOL_NUMBER];
+		fitnessRating = new double[GENOME_POOL_NUMBER];
 		//measured by error for XOR problem
 		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
 			double sum = 4.0;
@@ -62,7 +66,11 @@ public class Main{
 		System.out.println("");
 		
 		System.out.println("I have a " + fitnessRating[x] + " fitness rating.");
-		
+		genomePool[x].setNodeValues(inputs[3]);
+		double[] o = genomePool[x].getNodeValues();
+		for(int q = 0; q < o.length; q++){
+			System.out.println(o[q]);
+		}
 		
 		
 	}

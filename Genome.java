@@ -15,8 +15,8 @@ class Genome{
 		i_nodes = input_nodes;
 		o_nodes = output_nodes;
 		innovationNum = iNum;
-		body = new NeuralNet(this);
 		Mutate();
+		body = new NeuralNet(this);
 	}
 	//assigned stats generation(breeding)
 	Genome(int input_nodes, int output_nodes, int iNum, LinkedList<ConnectionGene> g){
@@ -92,6 +92,15 @@ class Genome{
 		}
 		return o;
 	}
+	//to return all node values
+	double[] getNodeValues(){
+		double[] o = new double[body.net.length];
+		for(int x = 0; x < o.length; x++){
+			o[x] = body.net[x].value;
+		}
+		return o;
+	}
+	
 }
 /*class Gene{
 	

@@ -1,9 +1,10 @@
+import java.util.*;
 
 //PHENOTYPE
 class NeuralNet{
 	Node[] net;
 	boolean[] v;
-	int gin,gon;
+	int gin,gon;//ghn = net.length - gin - gon; 
 	NeuralNet(){
 		
 	}
