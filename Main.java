@@ -1,11 +1,23 @@
+import java.util.ArrayList;
 
 public class Main{
 	final static int GENOME_POOL_NUMBER = 100;
 	final static int INPUT_NODES = 2;
 	final static int OUTPUT_NODES = 1;
 	
+	final static double COMPATABILITY_THRESHOLD = 3.0;
+	final static double EXCESS_FACTOR = 1.0;
+	final static double DISJOINT_FACTOR = 1.0;
+	final static double WEIGHT_FACTOR = 0.4;
+	final static double NORMALIZER = 1.0;
+	
+	final static double CULL_PERCENTAGE = 0.5;
+	
 	static Genome[] genomePool;
 	static double[] fitnessRating;
+	
+	static int[] speciesNumber;
+	static ArrayList<Genome> species = new ArrayList<Genome>();
 	
 	static double[][] inputs = {
 		{0.0,0.0},
@@ -44,10 +56,48 @@ public class Main{
 		}
 		
 		//speciation
-		
+		speciesNumber = new int[GENOME_POOL_NUMBER];
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			speciesNumber[x] = speciate(genomePool[x]);
+		}
 		
 		testing();
 		
+		
+	}
+	public static int speciate(Genome i){
+		for(int x = 0; x < species.size(); x++){
+			if(compatabilityDistance(species.get(x),i) <= COMPATABILITY_THRESHOLD){
+				return x;
+			}
+		}
+		species.add(i);
+		return species.size()-1;
+	}
+	public static double compatabilityDistance(Genome a, Genome b){
+		int excess 	 = Math.abs(a.innovationNum - b.innovationNum);
+		int disjoint = 0;
+		int matching = 0;
+		double diffW = 0.0;
+		
+		int q = Math.min(a.innovationNum,b.innovationNum);
+		Iterator aIt = a.connectionGenes.listIterator();
+		Iterator bIt = b.connectionGenes.listIterator();
+		for(int x = 0; x < q; x++){
+			ConnectionGene ag = aIt.next();
+			ConnectionGene bg = bIt.next();
+			if(ag.equals(bg)){
+				diffW += ag.weightDifference(bg);
+				matching++;
+			}else{
+				disjoint++;
+			}
+		}
+		
+		diffW /= matching;
+		return (EXCESS_FACTOR * excess / NORMALIZER)
+			+  (DISJOINT_FACTOR * excess / NORMALIZER)
+			+  WEIGHT_FACTOR * diffW;
 		
 	}
 	public static void testing(){
@@ -101,9 +151,11 @@ EXCESS:	  different gene that occurs outside of innovation number
 		"Each existing species is represented by a random genome inside
 		 the species from the previous generation. A given genome g in the current generation is
 		 placed in the first species in which g is compatible with the representative genome of
-		 that species. This way, species do not overlap.1
+		 that species. This way, species do not overlap.
 		 If g is not comp"
 		
+	Not using explicit Fitness sharing right now****
+	
 	Use "explicit fitness sharing" preventing species from overtaking the population
 		adjusted fitness F for organism i is calculated according to its compatibility distance from every other organism j in the
 		population
@@ -112,7 +164,7 @@ EXCESS:	  different gene that occurs outside of innovation number
 				   f				?(i,j) = compatibility distance from g i to g j
 		F = ----------------		sh(  ) = sharing function; set to 0 when input is
 			E * sh( ?(i,j) )				 above threshold set(?t), else, 1
-										 E = summantion of the following
+										 E = summation of the following
 										 
 		**Note that denominator reduces to the number of g's in the same species.
 		

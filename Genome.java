@@ -54,7 +54,7 @@ class Genome{
 				i = rand.nextInt(h_nodes+i_nodes);
 				int o = rand.nextInt(h_nodes+o_nodes)+i_nodes;//chance that i and o specify same node, or a node that already points to it, creating a cycle
 				//does not check if nodes already connected.
-				connectionGenes.add(new ConnectionGene(innovationNum,i,o));
+				connectionGenes.add(new ConnectionGene(innovationNum++,i,o));
 				break;
 			case 2://node mutate
 				if(connectionGenes.size() != 0){
@@ -101,19 +101,19 @@ class Genome{
 		}
 		return o;
 	}
-	
 }
 /*class Gene{
 	
 }*/
-class NodeGene /*extends Gene*/{
+/*
+class NodeGene extends Gene{
 	int id;
 	boolean output;
 	NodeGene(int id, boolean out){
 		this.id = id;
 		output = out;
 	}
-}
+}*/
 class ConnectionGene /*extends Gene*/{
 	int inID, outID, innovationNumber;
 	double weight;
@@ -135,6 +135,12 @@ class ConnectionGene /*extends Gene*/{
 	}
 	void MutateFunction(){
 		enabled = !enabled;
+	}
+	boolean equals(ConnectionGene i){
+		return this.inID == i.inID && this.outID == i.outID;
+	}
+	double weightDifference(ConnectionGene i){
+		return Math.abs(this.weight - i.weight);
 	}
 }
 
