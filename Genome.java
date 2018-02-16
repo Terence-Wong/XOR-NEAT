@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.LinkedList;
 
 class Genome{
-	int h_nodes = 0,o_nodes,i_nodes,innovationNum;
+	int h_nodes = 0,o_nodes,i_nodes,innovationNum;// innovation number correctly updated
 	LinkedList<ConnectionGene> connectionGenes = new LinkedList<ConnectionGene>();
+	//connection genes are in innovation number order
 	NeuralNet body;
 	//random Genome generation
 	Genome(int input_nodes, int output_nodes, int iNum){//iNum = 1
