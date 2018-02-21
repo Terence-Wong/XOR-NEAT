@@ -1,131 +1,3 @@
-import java.util.ArrayList;
-
-public class Main{
-	final static int GENOME_POOL_NUMBER = 100;
-	final static int INPUT_NODES = 2;
-	final static int OUTPUT_NODES = 1;
-	
-	final static double COMPATABILITY_THRESHOLD = 3.0;
-	final static double EXCESS_FACTOR = 1.0;
-	final static double DISJOINT_FACTOR = 1.0;
-	final static double WEIGHT_FACTOR = 0.4;
-	final static double NORMALIZER = 1.0;
-	
-	final static double CULL_PERCENTAGE = 0.5;
-	
-	static Genome[] genomePool;
-	static double[] fitnessRating;
-	
-	static int[] speciesNumber;
-	static ArrayList<Genome> species = new ArrayList<Genome>();
-	
-	static double[][] inputs = {
-		{0.0,0.0},
-		{0.0,1.0},
-		{1.0,0.0},
-		{1.0,1.0}
-	};
-	static double[] outputs = {
-		0.0,
-		1.0,
-		1.0,
-		0.0
-	};
-	
-	public static void main(String[]args){
-		//genome generation
-		genomePool = new Genome[GENOME_POOL_NUMBER];
-		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
-			genomePool[x] = new Genome(INPUT_NODES,OUTPUT_NODES,1);
-		}
-		
-		
-		//fitness evaluation
-		fitnessRating = new double[GENOME_POOL_NUMBER];
-		//measured by error for XOR problem
-		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
-			double sum = 4.0;
-			for(int y = 0; y < inputs.length; y++){
-				genomePool[x].setNodeValues(inputs[y]);
-				double[] o = genomePool[x].getNodeValues(OUTPUT_NODES);
-				//for(int z = 0; z < OUTPUT_NODES; z++){   infrastructure for 2d output array
-					sum -= Math.abs(o[0] - outputs[y]); // sum += o[z] - outputs[y][z] 
-				//}
-			}
-			fitnessRating[x] = sum;
-		}
-		
-		//speciation
-		speciesNumber = new int[GENOME_POOL_NUMBER];
-		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
-			speciesNumber[x] = speciate(genomePool[x]);
-		}
-		
-		testing();
-		
-		
-	}
-	public static int speciate(Genome i){
-		for(int x = 0; x < species.size(); x++){
-			if(compatabilityDistance(species.get(x),i) <= COMPATABILITY_THRESHOLD){
-				return x;
-			}
-		}
-		species.add(i);
-		return species.size()-1;
-	}
-	public static double compatabilityDistance(Genome a, Genome b){
-		int excess 	 = Math.abs(a.innovationNum - b.innovationNum);
-		int disjoint = 0;
-		int matching = 0;
-		double diffW = 0.0;
-		
-		int q = Math.min(a.innovationNum,b.innovationNum);
-		Iterator aIt = a.connectionGenes.listIterator();
-		Iterator bIt = b.connectionGenes.listIterator();
-		for(int x = 0; x < q; x++){
-			ConnectionGene ag = aIt.next();
-			ConnectionGene bg = bIt.next();
-			if(ag.equals(bg)){
-				diffW += ag.weightDifference(bg);
-				matching++;
-			}else{
-				disjoint++;
-			}
-		}
-		
-		diffW /= matching;
-		return (EXCESS_FACTOR * excess / NORMALIZER)
-			+  (DISJOINT_FACTOR * excess / NORMALIZER)
-			+  WEIGHT_FACTOR * diffW;
-		
-	}
-	public static void testing(){
-		//Early Genome Generation Testing
-		int x = 99;
-		System.out.println("I am Genome number " + x);
-		System.out.println("I have " + genomePool[x].i_nodes + " input nodes, " + genomePool[x].h_nodes 
-			+ " hidden nodes, and " + genomePool[x].o_nodes + " output nodes.");
-		System.out.println("I have " + genomePool[x].connectionGenes.size() + " connections between them.");
-		if(genomePool[x].connectionGenes.size() != 0){
-			ConnectionGene g = genomePool[x].connectionGenes.get(0);
-			System.out.println("This connects node " + g.inID + " to " + g.outID + " with weight " + g.weight);
-		}
-		
-		//First Genome evaluation Testing
-		System.out.println("");
-		
-		System.out.println("I have a " + fitnessRating[x] + " fitness rating.");
-		genomePool[x].setNodeValues(inputs[3]);
-		double[] o = genomePool[x].getNodeValues();
-		for(int q = 0; q < o.length; q++){
-			System.out.println(o[q]);
-		}
-		
-		
-	}
-}
-
 
 /*
 DISJOINT: different gene that occurs inside of innovation number
@@ -190,3 +62,192 @@ EXCESS:	  different gene that occurs outside of innovation number
  ?t = 3.0
  
 */
+
+//import java.util.ArrayList;
+import java.util.*;
+
+public class Main{
+	final static int GENOME_POOL_NUMBER = 100;
+	final static int INPUT_NODES = 2;
+	final static int OUTPUT_NODES = 1;
+	
+	final static double COMPATABILITY_THRESHOLD = 0.9;//3.0
+	final static double EXCESS_FACTOR = 1.5;
+	final static double DISJOINT_FACTOR = 1.0;
+	final static double WEIGHT_FACTOR = 0.1;//0.4
+	final static double NORMALIZER = 1.0;
+	
+	final static double CULL_PERCENTAGE = 0.5;
+	
+	static Genome[] genomePool;
+	
+	static LinkedList<Species> species = new LinkedList<Species>();
+	
+	static double[][] inputs = {
+		{0.0,0.0},
+		{0.0,1.0},
+		{1.0,0.0},
+		{1.0,1.0}
+	};
+	static double[] outputs = {
+		0.0,
+		1.0,
+		1.0,
+		0.0
+	};
+	
+	public static void main(String[]args){
+		//genome generation
+		genomePool = new Genome[GENOME_POOL_NUMBER];
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			genomePool[x] = new Genome(INPUT_NODES,OUTPUT_NODES,0);
+		}
+		//fitness evaluation
+		
+		//measured by error for XOR problem
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			double sum = 4.0;
+			for(int y = 0; y < inputs.length; y++){
+				genomePool[x].setNodeValues(inputs[y]);
+				double[] o = genomePool[x].getNodeValues(OUTPUT_NODES);
+				//for(int z = 0; z < OUTPUT_NODES; z++){   infrastructure for 2d output array
+					sum -= Math.abs(o[0] - outputs[y]); // sum += o[z] - outputs[y][z] 
+				//}
+			}
+			genomePool[x].fitness = sum;
+		}
+		
+		//speciation
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			genomePool[x].speciesNumber = speciate(genomePool[x]);
+		}
+		
+		//sort by fitness
+		Arrays.sort(genomePool,new Comparator<Genome>(){
+			@Override
+		    public int compare(Genome a,Genome b) {
+				if(a.fitness > b.fitness){
+					return 1;
+				}
+				if(a.fitness < b.fitness){
+					return -1;
+				}
+				return 0;
+			}
+		});
+		//cull population
+		int[] deathList = new int[species.size()];
+		int count = 0;
+		for(Species x : species){
+			deathList[count] = (int)(x.members * CULL_PERCENTAGE);
+			count++;
+		}
+		ArrayList<Genome> survivors = new ArrayList<Genome>(GENOME_POOL_NUMBER);
+		for(int x = 0; x < GENOME_POOL_NUMBER; x++){
+			if(deathList[genomePool[x].speciesNumber] == 0){
+				//survive
+				survivors.add(genomePool[x]);
+			}else{
+				deathList[genomePool[x].speciesNumber]--;
+			}
+		}
+		//repopulate
+		
+		//re-elect species representative
+		
+		
+		//testing(0);
+		//System.out.println("");
+		//testing(99);
+		//System.out.println(compatabilityDistance(genomePool[0],genomePool[99]));
+	}
+	
+	
+	//SPECIATION
+	
+	
+	
+	public static int speciate(Genome i){
+		int count = 0;
+		for(Species x : species){
+			if(compatabilityDistance(x.rep,i) <= COMPATABILITY_THRESHOLD){
+				x.add();
+				return count;
+			}
+			count++;
+		}
+		species.add(new Species(i));
+		return species.size()-1;
+	}
+	public static double compatabilityDistance(Genome a, Genome b){
+		int excess 	 = Math.abs(a.innovationNum - b.innovationNum);
+		int disjoint = 0;
+		int matching = 0;
+		double diffW = 0.0;
+		
+		int q = Math.min(a.innovationNum,b.innovationNum);
+		Iterator aIt = a.connectionGenes.listIterator();
+		Iterator bIt = b.connectionGenes.listIterator();
+		for(int x = 0; x < q; x++){
+			ConnectionGene ag = (ConnectionGene)aIt.next();
+			ConnectionGene bg = (ConnectionGene)bIt.next();
+			if(ag.equals(bg)){
+				diffW += ag.weightDifference(bg);
+				matching++;
+			}else{
+				disjoint++;
+			}
+		}
+		if(matching != 0){
+			diffW /= matching;
+		}
+		return (EXCESS_FACTOR * excess / NORMALIZER)
+			+  (DISJOINT_FACTOR * disjoint / NORMALIZER)
+			+  WEIGHT_FACTOR * diffW;
+		
+	}
+	public static void testing(int x){
+		//Early Genome Generation Testing
+	
+		System.out.println("I am Genome number " + x);
+		System.out.println("I have " + genomePool[x].i_nodes + " input nodes, " + genomePool[x].h_nodes 
+			+ " hidden nodes, and " + genomePool[x].o_nodes + " output nodes.");
+		System.out.println("I have " + genomePool[x].connectionGenes.size() + " connections between them.");
+		if(genomePool[x].connectionGenes.size() != 0){
+			ConnectionGene g = genomePool[x].connectionGenes.get(0);
+			System.out.println("This connects node " + g.inID + " to " + g.outID + " with weight " + g.weight);
+		}
+		
+		//First Genome evaluation Testing
+		System.out.println("");
+		
+		//System.out.println("I have a " + fitnessRating[x] + " fitness rating.");
+		System.out.println("I have a " + genomePool[x].fitness + " fitness rating.");
+		genomePool[x].setNodeValues(inputs[3]);
+		double[] o = genomePool[x].getNodeValues();
+		//print all node values
+		for(int q = 0; q < o.length; q++){
+			System.out.println(o[q]);
+		}
+		
+		System.out.println("");
+		System.out.println("I am of species: " + genomePool[x].speciesNumber);
+		System.out.println("There are " + species.size() + " species in total.");
+		
+	}
+}
+
+class Species{
+	Genome rep;
+	int members;
+	Species(){
+		
+	}
+	Species(Genome r){
+		members = 1;
+		rep = r;
+	}
+	void add(){
+		members++;
+	}
+}

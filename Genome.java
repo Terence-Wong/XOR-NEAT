@@ -1,12 +1,9 @@
 
-import java.util.Random;
-import java.util.LinkedList;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.LinkedList;
+import java.util.*;
 
 class Genome{
+	double fitness = 0;
+	int speciesNumber;
 	int h_nodes = 0,o_nodes,i_nodes,innovationNum;// innovation number correctly updated
 	LinkedList<ConnectionGene> connectionGenes = new LinkedList<ConnectionGene>();
 	//connection genes are in innovation number order
@@ -73,6 +70,63 @@ class Genome{
 				}
 				break;
 		}
+	}
+	
+	Genome mutationOffspring(){
+		Mutate();
+		return this;
+	}
+	Genome breedOffspring(Genome b){
+		int q = Math.min(this.innovationNum,b.innovationNum);
+		Iterator aIt = this.connectionGenes.listIterator();
+		Iterator bIt = b.connectionGenes.listIterator();
+		
+		int iN = 0;
+		LinkedList<ConnectionGene> g = new LinkedList<ConnectionGene>();
+		if		(this.fitness > b.fitness){
+			for(int x = 0; x < q; x++){
+				ConnectionGene ag = (ConnectionGene)aIt.next();
+				ConnectionGene bg = (ConnectionGene)bIt.next();
+				iN++;
+				g.add(ag);
+			}
+			if		(this.innovationNum > b.innovationNum){
+				for(int x = 0; x < this.innovationNum-q; x++){
+					ConnectionGene ag = (ConnectionGene)aIt.next();
+					iN++;
+					g.add(ag);
+				}
+			}else if(this.innovationNum < b.innovationNum){
+				for(int x = 0; x < b.innovationNum-q; x++){
+					ConnectionGene bg = (ConnectionGene)bIt.next();
+					iN++;
+					g.add(bg);
+				}
+			}
+		}else /*if(this.fitness < b.fitness)*/{
+			for(int x = 0; x < q; x++){
+				ConnectionGene ag = (ConnectionGene)aIt.next();
+				ConnectionGene bg = (ConnectionGene)bIt.next();
+				iN++;
+				g.add(bg);
+			}
+			if		(this.innovationNum > b.innovationNum){
+				for(int x = 0; x < this.innovationNum-q; x++){
+					ConnectionGene ag = (ConnectionGene)aIt.next();
+					iN++;
+					g.add(ag);
+				}
+			}else if(this.innovationNum < b.innovationNum){
+				for(int x = 0; x < b.innovationNum-q; x++){
+					ConnectionGene bg = (ConnectionGene)bIt.next();
+					iN++;
+					g.add(bg);
+				}
+			}
+		}/*else{ // equal
+			
+		}*/
+		return new Genome(this.i_nodes,this.o_nodes,iN,g);
 	}
 	
 	void setNodeValues(double[] i){//up to dumb programmer to remember input node amount
